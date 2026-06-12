@@ -35,12 +35,12 @@ class HomeViewModel @Inject constructor(
     }
 
     private val _searchQuery = MutableStateFlow("games")
+    private val _retryCount = MutableStateFlow(0)
 
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _fetchResult: StateFlow<FetchResult> = _searchQuery
+    private val _fetchResult: StateFlow<FetchResult> = combine(_searchQuery, _retryCount) { query, _ -> query }
         .debounce(600L)
-        .distinctUntilChanged()
         .flatMapLatest { query ->
             flow {
                 emit(FetchResult.Loading)
@@ -60,7 +60,6 @@ class HomeViewModel @Inject constructor(
             initialValue = FetchResult.Loading
         )
 
-    // favorites viene de Room — persiste entre sesiones
     private val _favorites: StateFlow<Set<String>> = favoritesRepository
         .getFavoriteIds()
         .stateIn(
@@ -90,7 +89,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun retry() {
-        _searchQuery.value = _searchQuery.value
+        _retryCount.value++
     }
 
     fun toggleFavorite(productId: String) {

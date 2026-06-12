@@ -89,7 +89,6 @@ fun DetailScreen(
             modifier = Modifier.padding(innerPadding)
         ) {
 
-            // — Hero image —
             item {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -106,7 +105,6 @@ fun DetailScreen(
                 )
             }
 
-            // — Ícono + título + autor + rating —
             item {
                 Row(
                     modifier = Modifier

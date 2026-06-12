@@ -9,7 +9,6 @@ data class SerpApiResponse(
     @Json(name = "organic_results") val organicResults: List<OrganicResultGroup>?
 )
 
-// organic_results es una lista de grupos, cada grupo tiene items[]
 @JsonClass(generateAdapter = true)
 data class OrganicResultGroup(
     @Json(name = "items") val items: List<GameDto>?

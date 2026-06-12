@@ -17,7 +17,6 @@ class GameRepositoryImpl @Inject constructor(
                 ?.takeIf { !it.productId.isNullOrBlank() && !it.title.isNullOrBlank() }
                 ?.toDomain()
 
-            // organic_results es List<OrganicResultGroup> — aplanamos los items de cada grupo
             val games = response.organicResults
                 ?.flatMap { group -> group.items.orEmpty() }
                 ?.filter { !it.productId.isNullOrBlank() && !it.title.isNullOrBlank() }

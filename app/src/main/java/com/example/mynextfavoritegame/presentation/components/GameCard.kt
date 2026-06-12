@@ -84,8 +84,6 @@ fun GameCard(
                 contentScale = ContentScale.Crop
             )
 
-            // Fila de Info
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -93,8 +91,6 @@ fun GameCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-
-                // Icono del juego
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(game.thumbnail)
@@ -107,7 +103,6 @@ fun GameCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Titulo, autor, raiting
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {

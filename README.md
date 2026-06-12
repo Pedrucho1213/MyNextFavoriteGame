@@ -69,10 +69,14 @@ Run with a connected device or emulator:
 ./gradlew connectedDebugAndroidTest
 ```
 
-## What was not implemented
+## Known trade-offs
 
-**Pagination** — the SerpAPI response does not include standard pagination tokens in the `google_play_games` engine. Implementing infinite scroll would require either chaining requests by offset or switching to a different engine. Given time constraints this was left as a trade-off in favor of completing the full feature set.
+**Favorites are filtered from in-memory search results** — Room persists only the `productId` of each favorite. The full `Game` object (title, thumbnail, description, etc.) comes from the API response held in `HomeViewModel`. This means the Favorites screen only shows games that are present in the current search results. A production implementation would either store the full game object in Room or expose a dedicated endpoint to fetch game details by ID.
+
+**Pagination** — the SerpAPI response does not include standard pagination tokens in the `google_play_games` engine. Implementing infinite scroll would require chaining requests by offset or switching to a different engine. Given time constraints this was left as a trade-off in favor of completing the full feature set.
+
+**`Game` domain model location** — the `Game` data class lives in `presentation/components/` rather than a dedicated `domain/model/` package. In a full clean-architecture setup it would sit in a separate `domain` module with no dependency on either `data` or `presentation`. Moving it was deferred due to time.
 
 **ViewModel unit tests** — the `HomeViewModel` logic (debounce, flatMapLatest, combine) is best tested with `kotlinx-coroutines-test` and `Turbine`. These tests were omitted due to time, but the instrumented Compose tests cover the UI layer end-to-end.
 
-**Detail screen data source** — the detail screen receives the `Game` object from the navigation back stack (passed through the in-memory state from `HomeViewModel`). A production implementation would fetch the detail from a dedicated API endpoint or cache it in Room.
+**Detail screen data source** — the detail screen receives the `Game` object via the in-memory state from `HomeViewModel`. A production implementation would fetch the detail from a dedicated API endpoint or cache it in Room.

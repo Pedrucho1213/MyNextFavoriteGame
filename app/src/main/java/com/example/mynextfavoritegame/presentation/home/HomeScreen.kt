@@ -161,8 +161,6 @@ private fun SearchField(
     )
 }
 
-// ─── Success content ───────────────────────────────────────────────────────
-
 @Composable
 private fun SuccessContent(
     featuredGame: Game?,
