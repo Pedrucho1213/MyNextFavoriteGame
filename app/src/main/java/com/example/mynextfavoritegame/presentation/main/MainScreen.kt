@@ -39,6 +39,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
     val viewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
     val bottomNavItems = listOf(Screen.Home, Screen.Favorites)
     val showBottomBar = bottomNavItems.any {
@@ -102,11 +103,13 @@ fun MainScreen(modifier: Modifier = Modifier) {
             composable(Screen.Home.route) {
                 HomeScreen(
                     uiState = uiState,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = viewModel::onSearchQueryChange,
                     onFavoriteClick = viewModel::toggleFavorite,
                     onGameClick = { game ->
                         navController.navigate(Screen.Detail.createRoute(game.productId))
                     },
-                    onRetry = { viewModel.loadGames() }
+                    onRetry = viewModel::retry
                 )
             }
 

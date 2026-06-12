@@ -12,13 +12,18 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun searchGames(query: String): Result<Pair<Game?, List<Game>>> {
         return runCatching {
             val response = service.searchGames(query = query)
+
             val featured = response.appHighlight
                 ?.takeIf { !it.productId.isNullOrBlank() && !it.title.isNullOrBlank() }
                 ?.toDomain()
+
+            // organic_results es List<OrganicResultGroup> — aplanamos los items de cada grupo
             val games = response.organicResults
+                ?.flatMap { group -> group.items.orEmpty() }
                 ?.filter { !it.productId.isNullOrBlank() && !it.title.isNullOrBlank() }
                 ?.map { it.toDomain() }
                 ?: emptyList()
+
             Pair(featured, games)
         }
     }

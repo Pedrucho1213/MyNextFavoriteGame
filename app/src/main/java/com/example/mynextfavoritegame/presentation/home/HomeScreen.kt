@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,12 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -56,12 +50,13 @@ import com.example.mynextfavoritegame.ui.theme.MyNextFavoriteGameTheme
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     onFavoriteClick: (String) -> Unit,
     onGameClick: (Game) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -77,10 +72,10 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 )
-                if (uiState is HomeUiState.Success) {
+                if (uiState is HomeUiState.Success || uiState is HomeUiState.Loading) {
                     SearchField(
                         query = searchQuery,
-                        onQueryChange = { searchQuery = it },
+                        onQueryChange = onSearchQueryChange,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
@@ -107,7 +102,6 @@ fun HomeScreen(
                 featuredGame = uiState.featuredGame,
                 games = uiState.games,
                 favorites = uiState.favorites,
-                searchQuery = searchQuery,
                 onFavoriteClick = onFavoriteClick,
                 onGameClick = onGameClick,
                 modifier = Modifier.padding(innerPadding)
@@ -174,36 +168,11 @@ private fun SuccessContent(
     featuredGame: Game?,
     games: List<Game>,
     favorites: Set<String>,
-    searchQuery: String,
     onFavoriteClick: (String) -> Unit,
     onGameClick: (Game) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val trimmedQuery = searchQuery.trim()
-    val isSearching = trimmedQuery.length >= 2
-
-    val filteredGames by remember(games) {
-        derivedStateOf {
-            if (!isSearching) games
-            else games.filter { game ->
-                game.title.contains(trimmedQuery, ignoreCase = true) ||
-                        game.author.contains(trimmedQuery, ignoreCase = true)
-            }
-        }
-    }
-
-    val filteredFeatured by remember(featuredGame) {
-        derivedStateOf {
-            if (!isSearching) featuredGame
-            else if (featuredGame != null &&
-                (featuredGame.title.contains(trimmedQuery, ignoreCase = true) ||
-                        featuredGame.author.contains(trimmedQuery, ignoreCase = true))
-            ) featuredGame
-            else null
-        }
-    }
-
-    val hasResults = filteredFeatured != null || filteredGames.isNotEmpty()
+    val isEmpty = featuredGame == null && games.isEmpty()
 
     LazyColumn(
         contentPadding = PaddingValues(
@@ -215,20 +184,17 @@ private fun SuccessContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier
     ) {
-        if (isSearching && !hasResults) {
+        if (isEmpty) {
             item {
                 EmptySearchContent(
-                    query = trimmedQuery,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 48.dp)
                 )
             }
         } else {
-            filteredFeatured?.let { game ->
-                item(key = "label_featured") {
-                    SectionLabel(text = if (isSearching) "Result in Featured" else "Featured")
-                }
+            featuredGame?.let { game ->
+                item(key = "label_featured") { SectionLabel(text = "Featured") }
                 item(key = "featured_${game.productId}") {
                     GameCard(
                         game = game,
@@ -239,13 +205,11 @@ private fun SuccessContent(
                 }
             }
 
-            if (filteredGames.isNotEmpty()) {
+            if (games.isNotEmpty()) {
                 item(key = "label_results") {
-                    SectionLabel(
-                        text = if (isSearching) "Results (${filteredGames.size})" else "More games"
-                    )
+                    SectionLabel(text = "Results (${games.size})")
                 }
-                items(items = filteredGames, key = { it.productId }) { game ->
+                items(items = games, key = { it.productId }) { game ->
                     GameCard(
                         game = game,
                         isFavorite = favorites.contains(game.productId),
@@ -303,10 +267,7 @@ private fun ErrorContent(
 
 
 @Composable
-private fun EmptySearchContent(
-    query: String,
-    modifier: Modifier = Modifier
-) {
+private fun EmptySearchContent(modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -320,13 +281,13 @@ private fun EmptySearchContent(
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "No results for \"$query\"",
+            text = "No games found",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Try a different title or developer name.",
+            text = "Try a different search term.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -389,6 +350,8 @@ private fun HomeScreenSuccessPreview() {
                 games = fakeGames,
                 favorites = setOf("com.example.one")
             ),
+            searchQuery = "",
+            onSearchQueryChange = {},
             onFavoriteClick = {},
             onGameClick = {},
             onRetry = {}
@@ -402,6 +365,8 @@ private fun HomeScreenLoadingPreview() {
     MyNextFavoriteGameTheme {
         HomeScreen(
             uiState = HomeUiState.Loading,
+            searchQuery = "",
+            onSearchQueryChange = {},
             onFavoriteClick = {},
             onGameClick = {},
             onRetry = {}
@@ -415,6 +380,8 @@ private fun HomeScreenErrorPreview() {
     MyNextFavoriteGameTheme {
         HomeScreen(
             uiState = HomeUiState.Error("Something went wrong. Check your connection."),
+            searchQuery = "",
+            onSearchQueryChange = {},
             onFavoriteClick = {},
             onGameClick = {},
             onRetry = {}

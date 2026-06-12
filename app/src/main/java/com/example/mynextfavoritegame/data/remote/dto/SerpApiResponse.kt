@@ -6,7 +6,13 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class SerpApiResponse(
     @Json(name = "app_highlight") val appHighlight: GameDto?,
-    @Json(name = "organic_results") val organicResults: List<GameDto>?
+    @Json(name = "organic_results") val organicResults: List<OrganicResultGroup>?
+)
+
+// organic_results es una lista de grupos, cada grupo tiene items[]
+@JsonClass(generateAdapter = true)
+data class OrganicResultGroup(
+    @Json(name = "items") val items: List<GameDto>?
 )
 
 @JsonClass(generateAdapter = true)
@@ -15,9 +21,8 @@ data class GameDto(
     @Json(name = "title") val title: String?,
     @Json(name = "author") val author: String?,
     @Json(name = "rating") val rating: Double?,
-    @Json(name = "reviews") val reviews: Int?,
-    @Json(name = "extensions") val extensions: List<String>?,
+    @Json(name = "category") val category: String?,
+    @Json(name = "downloads") val downloads: String?,
     @Json(name = "thumbnail") val thumbnail: String?,
-    @Json(name = "screenshots") val screenshots: List<String>?,
-    @Json(name = "description") val description: String?,
+    @Json(name = "description") val description: String?
 )
