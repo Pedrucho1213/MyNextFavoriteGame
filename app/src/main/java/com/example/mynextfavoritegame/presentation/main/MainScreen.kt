@@ -1,5 +1,6 @@
 package com.example.mynextfavoritegame.presentation.main
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -12,11 +13,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -26,60 +25,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mynextfavoritegame.navigation.Screen
-import com.example.mynextfavoritegame.presentation.components.Game
 import com.example.mynextfavoritegame.presentation.detail.DetailScreen
 import com.example.mynextfavoritegame.presentation.favorites.FavoritesScreen
 import com.example.mynextfavoritegame.presentation.home.HomeScreen
 import com.example.mynextfavoritegame.presentation.home.HomeUiState
-
-
-// — Fake data hasta conectar el ViewModel —
-private val fakeFeatured = Game(
-    productId = "com.n3twork.tetris",
-    title = "Tetris®",
-    author = "PLAYSTUDIOS US, LLC",
-    rating = 4.1f,
-    reviews = 461000,
-    downloads = "50M+",
-    category = "Puzzle",
-    thumbnail = "https://play-lh.googleusercontent.com/oNaKkMEDGWMJF8xOiRdxFnj_UMamqhYP9Q2t0xhxEq8JfBQHGnhHwHMNTGu8SKVJ8g",
-    heroImage = "https://play-lh.googleusercontent.com/oNaKkMEDGWMJF8xOiRdxFnj_UMamqhYP9Q2t0xhxEq8JfBQHGnhHwHMNTGu8SKVJ8g",
-    screenshots = emptyList(),
-    description = "Play the world's most famous puzzle game.",
-    contentRating = "Everyone"
-)
-private val fakeGames = listOf(
-    Game(
-        productId = "com.playstudios.blockblast",
-        title = "Block Blast!",
-        author = "Hungry Studio",
-        rating = 4.7f,
-        reviews = 1200000,
-        downloads = "100M+",
-        category = "Puzzle",
-        thumbnail = "https://play-lh.googleusercontent.com/oNaKkMEDGWMJF8xOiRdxFnj_UMamqhYP9Q2t0xhxEq8JfBQHGnhHwHMNTGu8SKVJ8g",
-        heroImage = "https://play-lh.googleusercontent.com/oNaKkMEDGWMJF8xOiRdxFnj_UMamqhYP9Q2t0xhxEq8JfBQHGnhHwHMNTGu8SKVJ8g",
-        screenshots = emptyList(),
-        description = "Drop blocks to fill rows and columns.",
-        contentRating = "Everyone"
-    ),
-    Game(
-        productId = "com.supercell.clashofclans",
-        title = "Clash of Clans",
-        author = "Supercell",
-        rating = 4.6f,
-        reviews = 22000000,
-        downloads = "500M+",
-        category = "Strategy",
-        thumbnail = "https://play-lh.googleusercontent.com/oNaKkMEDGWMJF8xOiRdxFnj_UMamqhYP9Q2t0xhxEq8JfBQHGnhHwHMNTGu8SKVJ8g",
-        heroImage = "https://play-lh.googleusercontent.com/oNaKkMEDGWMJF8xOiRdxFnj_UMamqhYP9Q2t0xhxEq8JfBQHGnhHwHMNTGu8SKVJ8g",
-        screenshots = emptyList(),
-        description = "Build your village, train your troops, and battle with others.",
-        contentRating = "Everyone 10+"
-    )
-)
-
-private val allGames = listOf(fakeFeatured) + fakeGames
+import com.example.mynextfavoritegame.presentation.home.HomeViewModel
 
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
@@ -87,8 +37,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // TODO: reemplazar con ViewModel cuando esté listo
-    var favorites by remember { mutableStateOf(emptySet<String>()) }
+    val viewModel: HomeViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val bottomNavItems = listOf(Screen.Home, Screen.Favorites)
     val showBottomBar = bottomNavItems.any {
@@ -148,30 +98,29 @@ fun MainScreen(modifier: Modifier = Modifier) {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
+
             composable(Screen.Home.route) {
                 HomeScreen(
-                    uiState = HomeUiState.Success(
-                        featuredGame = fakeFeatured,
-                        games = fakeGames,
-                        favorites = favorites
-                    ),
-                    onFavoriteClick = { id ->
-                        favorites = if (id in favorites) favorites - id else favorites + id
-                    },
+                    uiState = uiState,
+                    onFavoriteClick = viewModel::toggleFavorite,
                     onGameClick = { game ->
                         navController.navigate(Screen.Detail.createRoute(game.productId))
                     },
-                    onRetry = {},
-                    modifier = Modifier
+                    onRetry = { viewModel.loadGames() }
                 )
             }
 
             composable(Screen.Favorites.route) {
+                val favoriteGames = when (val s = uiState) {
+                    is HomeUiState.Success -> {
+                        val all = listOfNotNull(s.featuredGame) + s.games
+                        all.filter { it.productId in s.favorites }
+                    }
+                    else -> emptyList()
+                }
                 FavoritesScreen(
-                    games = allGames.filter { it.productId in favorites },
-                    onFavoriteClick = { id ->
-                        favorites = if (id in favorites) favorites - id else favorites + id
-                    },
+                    games = favoriteGames,
+                    onFavoriteClick = viewModel::toggleFavorite,
                     onGameClick = { game ->
                         navController.navigate(Screen.Detail.createRoute(game.productId))
                     }
@@ -185,19 +134,22 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 )
             ) { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString(Screen.Detail.ARG)
-                val game = allGames.find { it.productId == productId }
+                val game = when (val s = uiState) {
+                    is HomeUiState.Success -> {
+                        val all = listOfNotNull(s.featuredGame) + s.games
+                        all.find { it.productId == productId }
+                    }
+                    else -> null
+                }
                 if (game != null) {
                     DetailScreen(
                         game = game,
-                        isFavorite = productId in favorites,
+                        isFavorite = when (val s = uiState) {
+                            is HomeUiState.Success -> productId in s.favorites
+                            else -> false
+                        },
                         onFavoriteClick = {
-                            if (productId != null) {
-                                favorites = if (productId in favorites) {
-                                    favorites - productId
-                                } else {
-                                    favorites + productId
-                                }
-                            }
+                            if (productId != null) viewModel.toggleFavorite(productId)
                         },
                         onBackClick = { navController.navigateUp() }
                     )

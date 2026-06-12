@@ -265,7 +265,7 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
         modifier = modifier
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(modifier = Modifier.size(48.dp))
     }
 }
 
