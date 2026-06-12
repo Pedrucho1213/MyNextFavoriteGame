@@ -1,6 +1,8 @@
 package com.example.mynextfavoritegame.di
 
 
+import com.example.mynextfavoritegame.data.repository.FavoritesRepository
+import com.example.mynextfavoritegame.data.repository.FavoritesRepositoryImpl
 import com.example.mynextfavoritegame.data.repository.GameRepository
 import com.example.mynextfavoritegame.data.repository.GameRepositoryImpl
 import dagger.Binds
@@ -16,4 +18,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindGameRepository(impl: GameRepositoryImpl): GameRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFavoritesRepository(impl: FavoritesRepositoryImpl): FavoritesRepository
 }

@@ -2,6 +2,7 @@ package com.example.mynextfavoritegame.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mynextfavoritegame.data.repository.FavoritesRepository
 import com.example.mynextfavoritegame.data.repository.GameRepository
 import com.example.mynextfavoritegame.presentation.components.Game
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,13 +18,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: GameRepository
+    private val gameRepository: GameRepository,
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
     private sealed interface FetchResult {
@@ -33,18 +35,16 @@ class HomeViewModel @Inject constructor(
     }
 
     private val _searchQuery = MutableStateFlow("games")
-    private val _favorites = MutableStateFlow<Set<String>>(emptySet())
 
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    // Cada vez que el query cambia (con debounce de 600ms) lanza una nueva búsqueda
     private val _fetchResult: StateFlow<FetchResult> = _searchQuery
         .debounce(600L)
         .distinctUntilChanged()
         .flatMapLatest { query ->
             flow {
                 emit(FetchResult.Loading)
-                repository.searchGames(query.ifBlank { "games" }).fold(
+                gameRepository.searchGames(query.ifBlank { "games" }).fold(
                     onSuccess = { (featured, games) ->
                         emit(FetchResult.Success(featured, games))
                     },
@@ -58,6 +58,15 @@ class HomeViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = FetchResult.Loading
+        )
+
+    // favorites viene de Room — persiste entre sesiones
+    private val _favorites: StateFlow<Set<String>> = favoritesRepository
+        .getFavoriteIds()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = emptySet()
         )
 
     val uiState: StateFlow<HomeUiState> = combine(_fetchResult, _favorites) { result, favs ->
@@ -81,13 +90,12 @@ class HomeViewModel @Inject constructor(
     }
 
     fun retry() {
-        // Fuerza re-emit del query actual para reintentar
         _searchQuery.value = _searchQuery.value
     }
 
     fun toggleFavorite(productId: String) {
-        _favorites.update { current ->
-            if (productId in current) current - productId else current + productId
+        viewModelScope.launch {
+            favoritesRepository.toggleFavorite(productId)
         }
     }
 }

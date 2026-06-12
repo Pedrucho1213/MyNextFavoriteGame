@@ -23,6 +23,7 @@ navigationCompose = "2.9.7"
 junitJunit = "4.13.2"
 junitJunitVersion = "4.12"
 coilCompose = "3.4.0"
+room = "2.7.1"
 
 
 [libraries]
@@ -64,6 +65,10 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
+
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
