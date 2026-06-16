@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.example.mynextfavoritegame.domain.model.Game
 
 private val previewGame = Game(
     productId = "com.example.game",
@@ -39,21 +40,6 @@ private val previewGame = Game(
     screenshots = emptyList(),
     description = "Build, attack and steal with friends.",
     contentRating = "Everyone"
-)
-
-data class Game(
-    val productId: String,
-    val title: String,
-    val author: String,
-    val rating: Float,
-    val reviews: Int,
-    val downloads: String,
-    val category: String,
-    val thumbnail: String,
-    val heroImage: String,
-    val screenshots: List<String>,
-    val description: String,
-    val contentRating: String
 )
 
 @Composable

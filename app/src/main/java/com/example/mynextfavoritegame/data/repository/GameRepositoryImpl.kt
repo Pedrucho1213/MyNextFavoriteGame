@@ -2,7 +2,7 @@ package com.example.mynextfavoritegame.data.repository
 
 import com.example.mynextfavoritegame.data.remote.SerpApiService
 import com.example.mynextfavoritegame.data.remote.mapper.toDomain
-import com.example.mynextfavoritegame.presentation.components.Game
+import com.example.mynextfavoritegame.domain.model.Game
 import javax.inject.Inject
 
 class GameRepositoryImpl @Inject constructor(

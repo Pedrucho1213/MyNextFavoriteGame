@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mynextfavoritegame.data.repository.FavoritesRepository
 import com.example.mynextfavoritegame.data.repository.GameRepository
-import com.example.mynextfavoritegame.presentation.components.Game
+import com.example.mynextfavoritegame.domain.model.Game
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview

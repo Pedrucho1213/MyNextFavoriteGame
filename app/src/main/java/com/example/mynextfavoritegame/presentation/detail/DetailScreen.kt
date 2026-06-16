@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.example.mynextfavoritegame.presentation.components.Game
+import com.example.mynextfavoritegame.domain.model.Game
 import com.example.mynextfavoritegame.presentation.components.RatingRow
 import com.example.mynextfavoritegame.ui.theme.MyNextFavoriteGameTheme
 

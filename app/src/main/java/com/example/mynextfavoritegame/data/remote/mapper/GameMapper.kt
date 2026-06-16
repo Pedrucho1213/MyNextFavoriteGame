@@ -1,7 +1,7 @@
 package com.example.mynextfavoritegame.data.remote.mapper
 
 import com.example.mynextfavoritegame.data.remote.dto.GameDto
-import com.example.mynextfavoritegame.presentation.components.Game
+import com.example.mynextfavoritegame.domain.model.Game
 
 fun GameDto.toDomain(): Game {
     val heroImage = thumbnail?.replace("=s64-rw", "=s512-rw") ?: thumbnail.orEmpty()

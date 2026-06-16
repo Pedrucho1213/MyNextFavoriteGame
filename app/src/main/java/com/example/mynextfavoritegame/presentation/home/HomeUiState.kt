@@ -1,6 +1,6 @@
 package com.example.mynextfavoritegame.presentation.home
 
-import com.example.mynextfavoritegame.presentation.components.Game
+import com.example.mynextfavoritegame.domain.model.Game
 
 sealed interface HomeUiState {
 
