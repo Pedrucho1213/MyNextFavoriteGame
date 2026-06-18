@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mynextfavoritegame.domain.model.Game
 import com.example.mynextfavoritegame.presentation.components.GameCard
 import com.example.mynextfavoritegame.ui.theme.MyNextFavoriteGameTheme
+import java.util.Collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -379,6 +380,24 @@ private fun HomeScreenErrorPreview() {
         HomeScreen(
             uiState = HomeUiState.Error("Something went wrong. Check your connection."),
             searchQuery = "",
+            onSearchQueryChange = {},
+            onFavoriteClick = {},
+            onGameClick = {},
+            onRetry = {}
+        )
+    }
+}
+@Preview(showBackground = true, showSystemUi = true, name = "HomeScreen – Empty")
+@Composable
+private fun HomeScreenEmptyPreview() {
+    MyNextFavoriteGameTheme {
+        HomeScreen(
+            uiState = HomeUiState.Success(
+                featuredGame = null,
+                games = emptyList(),
+                favorites = emptySet()
+            ),
+            searchQuery = "Search that returns nothing",
             onSearchQueryChange = {},
             onFavoriteClick = {},
             onGameClick = {},
